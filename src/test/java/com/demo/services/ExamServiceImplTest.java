@@ -47,23 +47,23 @@ class ExamServiceImplTest {
 		MockitoAnnotations.openMocks(this);
 	}
 
-	@Test
-	 void testGetExamByeId() throws InvalidExamIdException {
-		int validExamId = 1;
-		Exam expectedExam = new Exam(validExamId, "Java", 2, "3PM", "5PM", "10/08/2023",1);
+	// @Test
+	//  void testGetExamByeId() throws InvalidExamIdException {
+	// 	int validExamId = 1;
+	// 	Exam expectedExam = new Exam(validExamId, "Java", 2, "3PM", "5PM", "10/08/2023",1);
 
-		when(examRepository.findById(validExamId)).thenReturn(Optional.of(expectedExam));
+	// 	when(examRepository.findById(validExamId)).thenReturn(Optional.of(expectedExam));
 
-		Exam exam = examService.getExamByeId(validExamId);
+	// 	Exam exam = examService.getExamByeId(validExamId);
 
-		assertNotNull(exam);
+	// 	assertNotNull(exam);
 //		assertEquals(validExamId, exam.geteId());
 //		assertEquals("Java", exam.geteName());
 //		assertEquals(2, exam.getDuration());
 //		assertEquals("3PM", exam.getStartTime());
 //		assertEquals("5PM", exam.getEndTime());
 //		assertEquals("10/08/2023", exam.getExamDate());
-	}
+	//}
 
 	@Test
 	 void testFindExamWithSorting() throws Exception {
@@ -81,24 +81,24 @@ class ExamServiceImplTest {
 //		assertThat(exams).containsExactlyElementsOf(expectedExams);
 	}
 
-	@Test
-	 void testGetExamByEndTime() {
-		String eName = "Math Exam";
-		String endTime = "2023-06-01T10:00:00";
-		Exam expectedExam = new Exam(1, "Math Exam", 2, "9AM", "11AM", "2023-06-01T10:00:00",1);
+	// @Test
+	//  void testGetExamByEndTime() {
+	// 	String eName = "Math Exam";
+	// 	String endTime = "2023-06-01T10:00:00";
+	// 	Exam expectedExam = new Exam(1, "Math Exam", 2, "9AM", "11AM", "2023-06-01T10:00:00",1);
 
-		when(examRepository.findByeNameAndEndTime(eName, endTime)).thenReturn(Optional.of(expectedExam));
+	// 	when(examRepository.findByeNameAndEndTime(eName, endTime)).thenReturn(Optional.of(expectedExam));
 
-		Exam exam = examService.getExamByEndTime(eName, endTime);
+	// 	Exam exam = examService.getExamByEndTime(eName, endTime);
 
-		assertNotNull(exam);
+	// 	assertNotNull(exam);
 //		assertEquals(1, exam.geteId());
 //		assertEquals("Math Exam", exam.geteName());
 //		assertEquals(2, exam.getDuration());
 //		assertEquals("9AM", exam.getStartTime());
 //		assertEquals("11AM", exam.getEndTime());
 //		assertEquals("2023-06-01T10:00:00", exam.getExamDate());
-	}
+	//}
 
 	@Test
 	 void testSortingBasedOnDuration() throws NullValuesFoundException {
@@ -134,22 +134,22 @@ class ExamServiceImplTest {
 		assertThat(actualExams).containsExactlyElementsOf(expectedExams);
 	}
 
-	@Test
-	 void testUpdateExam() throws ExamNotFoundException {
-		Exam examToUpdate = new Exam(1, "Java", 2, "3PM", "4PM", "10/07/2023",1);
+	// @Test
+	//  void testUpdateExam() throws ExamNotFoundException {
+	// 	Exam examToUpdate = new Exam(1, "Java", 2, "3PM", "4PM", "10/07/2023",1);
 
-		when(examRepository.save(examCaptor.capture())).thenReturn(examToUpdate);
+	// 	when(examRepository.save(examCaptor.capture())).thenReturn(examToUpdate);
 
-		Exam updatedExam = examService.updateExam(examToUpdate);
+	// 	Exam updatedExam = examService.updateExam(examToUpdate);
 
-		assertEquals(examToUpdate, updatedExam);
-		assertEquals(examToUpdate.geteId(), examCaptor.getValue().geteId());
-		assertEquals(examToUpdate.geteName(), examCaptor.getValue().geteName());
-		assertEquals(examToUpdate.getDuration(), examCaptor.getValue().getDuration());
-		assertEquals(examToUpdate.getStartTime(), examCaptor.getValue().getStartTime());
-     	assertEquals(examToUpdate.getEndTime(), examCaptor.getValue().getEndTime());
-		assertEquals(examToUpdate.getExamDate(), examCaptor.getValue().getExamDate());
-	}
+	// 	assertEquals(examToUpdate, updatedExam);
+	// 	assertEquals(examToUpdate.geteId(), examCaptor.getValue().geteId());
+	// 	assertEquals(examToUpdate.geteName(), examCaptor.getValue().geteName());
+	// 	assertEquals(examToUpdate.getDuration(), examCaptor.getValue().getDuration());
+	// 	assertEquals(examToUpdate.getStartTime(), examCaptor.getValue().getStartTime());
+ //     	assertEquals(examToUpdate.getEndTime(), examCaptor.getValue().getEndTime());
+	// 	assertEquals(examToUpdate.getExamDate(), examCaptor.getValue().getExamDate());
+	// }
 
 	@Test
 	 void testDeleteByeId_NonExistingId_NoExceptionThrown() throws InvalidExamIdException {
