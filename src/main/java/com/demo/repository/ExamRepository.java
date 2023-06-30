@@ -1,7 +1,6 @@
 package com.demo.repository;
 
-import java.time.LocalTime;
-import java.util.List;
+
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +20,12 @@ public interface ExamRepository extends JpaRepository<Exam, Integer> {
 	
 	@Query("from Exam e where e.startTime=:startTime and e.endTime=:endTime")
 	public Exam findExamBystartTimeEndTime(@Param(value="startTime") String startTime,@Param(value="endTime") String endTime);
+
+
+	public Object findByeName(String eName);
+
+
+	public Object findByeNameAndEndTime(String eName, String endTime);
 
 	
 }

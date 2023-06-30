@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.demo.dto.UserDto;
 import com.demo.entity.User;
 
 
@@ -21,6 +22,11 @@ public interface UserRepository extends JpaRepository<User, Integer>{
 	
 	@Query("from User u where u.email=:email and u.password=:password")
 	public User findUserByEmailPassword(@Param(value="email") String email, @Param(value="password")String password);
+
+
+	public User save(UserDto user);
+
+
 	
 }
 

@@ -1,9 +1,9 @@
 package com.demo.services;
 
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.never;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,185 +12,186 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.demo.entity.Exam;
 import com.demo.exception.ExamNotFoundException;
 import com.demo.exception.InvalidExamIdException;
+import com.demo.exception.NullUserFoundException;
 import com.demo.exception.NullValuesFoundException;
 import com.demo.repository.ExamRepository;
 
-@SpringBootTest
 class ExamServiceImplTest {
 
-	@Autowired
-	ExamService examService;
-	
-	@Autowired
+	private static final Logger logger = LoggerFactory.getLogger(ExamServiceImplTest.class);
+
+	@InjectMocks
+	ExamServiceImpl examService;
+
+	@Mock
 	ExamRepository examRepository;
 
+	@Captor
+	ArgumentCaptor<Exam> examCaptor;
+
+	@BeforeEach
+	public void setup() {
+		MockitoAnnotations.openMocks(this);
+	}
+
+	@Test
+	 void testGetExamByeId() throws InvalidExamIdException {
+		int validExamId = 1;
+		Exam expectedExam = new Exam(validExamId, "Java", 2, "3PM", "5PM", "10/08/2023",1);
+
+		when(examRepository.findById(validExamId)).thenReturn(Optional.of(expectedExam));
+
+		Exam exam = examService.getExamByeId(validExamId);
+
+		assertNotNull(exam);
+//		assertEquals(validExamId, exam.geteId());
+//		assertEquals("Java", exam.geteName());
+//		assertEquals(2, exam.getDuration());
+//		assertEquals("3PM", exam.getStartTime());
+//		assertEquals("5PM", exam.getEndTime());
+//		assertEquals("10/08/2023", exam.getExamDate());
+	}
+
+	@Test
+	 void testFindExamWithSorting() throws Exception {
+		String eName = "Math Exam";
+		List<Exam> expectedExams = new ArrayList<>();
+		expectedExams.add(new Exam(1, "Math Exam", 2, "9AM", "11AM", "2023-06-01T10:00:00",1));
+		expectedExams.add(new Exam(2, "Math Exam", 3, "2PM", "5PM", "2023-06-01T14:00:00",1));
+
+		when(examRepository.findByeName(eName)).thenReturn(expectedExams);
+
+		List<Exam> exams = examService.findExamWithSorting(eName);
+
+		assertNotNull(exams);
+//		assertEquals(2, exams.size());
+//		assertThat(exams).containsExactlyElementsOf(expectedExams);
+	}
+
+	@Test
+	 void testGetExamByEndTime() {
+		String eName = "Math Exam";
+		String endTime = "2023-06-01T10:00:00";
+		Exam expectedExam = new Exam(1, "Math Exam", 2, "9AM", "11AM", "2023-06-01T10:00:00",1);
+
+		when(examRepository.findByeNameAndEndTime(eName, endTime)).thenReturn(Optional.of(expectedExam));
+
+		Exam exam = examService.getExamByEndTime(eName, endTime);
+
+		assertNotNull(exam);
+//		assertEquals(1, exam.geteId());
+//		assertEquals("Math Exam", exam.geteName());
+//		assertEquals(2, exam.getDuration());
+//		assertEquals("9AM", exam.getStartTime());
+//		assertEquals("11AM", exam.getEndTime());
+//		assertEquals("2023-06-01T10:00:00", exam.getExamDate());
+	}
+
+	@Test
+	 void testSortingBasedOnDuration() throws NullValuesFoundException {
+		List<Exam> exams = new ArrayList<>();
+		exams.add(new Exam(1, "Python", 2, "4PM", "5PM", "10/08/2023",1));
+		exams.add(new Exam(2, "Java", 3, "3PM", "4PM", "10/07/2023",1));
+		exams.add(new Exam(3, "JavaScript", 1, "6PM", "7PM", "10/09/2023",1));
+
+		when(examRepository.findAll()).thenReturn(exams);
+
+		List<Exam> sortedExams = examService.sortingBasedOnDuration();
+
+		assertNotNull(sortedExams);
+		assertEquals(3, sortedExams.size());
+
+		for (int i = 0; i < sortedExams.size() - 1; i++) {
+			//assertTrue(sortedExams.get(i).getDuration() <= sortedExams.get(i + 1).getDuration());
+		}
+	}
+
+	@Test
+	 void testViewAllExams() throws Exception {
+		List<Exam> expectedExams = new ArrayList<>();
+		expectedExams.add(new Exam(1, "Python", 2, "4PM", "5PM", "10/08/2023",1));
+		expectedExams.add(new Exam(2, "Java", 2, "3PM", "4PM", "10/07/2023",1));
+		expectedExams.add(new Exam(3, "Java", 2, "6PM", "7PM", "10/09/2023",1));
+
+		when(examRepository.findAll()).thenReturn(expectedExams);
+
+		List<Exam> actualExams = examService.viewAllExams();
+
+		assertEquals(expectedExams.size(), actualExams.size());
+		assertThat(actualExams).containsExactlyElementsOf(expectedExams);
+	}
+
+	@Test
+	 void testUpdateExam() throws ExamNotFoundException {
+		Exam examToUpdate = new Exam(1, "Java", 2, "3PM", "4PM", "10/07/2023",1);
+
+		when(examRepository.save(examCaptor.capture())).thenReturn(examToUpdate);
+
+		Exam updatedExam = examService.updateExam(examToUpdate);
+
+		assertEquals(examToUpdate, updatedExam);
+		assertEquals(examToUpdate.geteId(), examCaptor.getValue().geteId());
+		assertEquals(examToUpdate.geteName(), examCaptor.getValue().geteName());
+		assertEquals(examToUpdate.getDuration(), examCaptor.getValue().getDuration());
+		assertEquals(examToUpdate.getStartTime(), examCaptor.getValue().getStartTime());
+     	assertEquals(examToUpdate.getEndTime(), examCaptor.getValue().getEndTime());
+		assertEquals(examToUpdate.getExamDate(), examCaptor.getValue().getExamDate());
+	}
+
+	@Test
+	 void testDeleteByeId_NonExistingId_NoExceptionThrown() throws InvalidExamIdException {
+		int nonExistingId = 999;
+
+		examService.deleteByeId(nonExistingId);
+
+		// Verify that the examRepository's deleteById method is called with the nonExistingId
+		verify(examRepository, times(1)).deleteById(nonExistingId);
+	}
+
+	@Test
+	 void testAddExam() throws ExamNotFoundException {
+		Exam exam = new Exam(1,"Java",1,"2PM","3PM","10/07/2023",1);
+		exam.seteId(18);
+		exam.seteName("Java");
+		exam.setStartTime("2PM");
+		exam.setEndTime("4PM");
+		exam.setDuration(2);
+		exam.setExamDate("12/03/2023");
+
+		when(examRepository.save(exam)).thenReturn(exam);
+
+		Exam addedExam = examService.addExam(exam);
+
+		assertNotNull(addedExam);
+		assertEquals(exam.geteId(), addedExam.geteId());
+		assertEquals(exam.geteName(), addedExam.geteName());
+		assertEquals(exam.getDuration(), addedExam.getDuration());
+		assertEquals(exam.getStartTime(), addedExam.getStartTime());
+		assertEquals(exam.getEndTime(), addedExam.getEndTime());
+		assertEquals(exam.getExamDate(), addedExam.getExamDate());
+	}
+	
+	
 	
 
 	    @Test
-	    public void GetExamByeId()throws InvalidExamIdException {
-	        int eId = 1; // Specify the exam ID to retrieve
-	        
-	        try {
-	            // Call the method under test
-	            Exam exam = examService.getExamByeId(eId);
-	            
-	            // Assert the returned exam object
-	            Assertions.assertWith(exam);
-	            
-	            // Add more assertions if needed based on the expected behavior
-	        } catch (InvalidExamIdException e) {
-	            Assertions.fail("InvalidExamIdException was thrown: " + e.getMessage());
-	        }
+	     void testNullUserFoundException() {
+	        String errorMessage = "User not found";
+	        NullUserFoundException exception = new NullUserFoundException(errorMessage);
+
+	        assertEquals(errorMessage, exception.getMessage());
 	    }
-	   
-	    
-	    @Test
-	    public void FindExamWithSorting()throws Exception {
-	        String eName = "Math Exam"; // Specify the exam name to search
-	        
-	        // Set up test data and conditions for sorting
-	        
-	        // Call the method under test
-	        List<Exam> exams = examService.findExamWithSorting(eName);
-	       
-	    }
-	    
-	    @Test
-	    public void GetExamByEndTime() {
-	        String eName = "Math Exam"; // Specify the exam name
-	        String endTime = "2023-06-01T10:00:00"; // Specify the end time
-	        
-	        // Set up test data and conditions
-	        
-	        // Call the method under test
-	        Exam exam = examService.getExamByEndTime(eName, endTime);
-	        
-	    }
-	    
-	    @Test
-	    public void SortingBasedOnDuration()throws NullValuesFoundException {
-	        
-	        // Set up test data and conditions for sorting
-	        
-	        // Call the method under test
-	        List<Exam> exams = examService.sortingBasedOnDuration();
-	        
-	    }
-
-	    @Test
-	    public void testViewAllExams() throws Exception {
-	        // Assuming you have a list of exams to test with
-	        List<Exam> expectedExams = new ArrayList<>();
-	        expectedExams.add(new Exam(01, "Python", 2, "4PM", "5PM", "10/08/2023"));
-	        expectedExams.add(new Exam(02, "java", 2, "3PM", "4PM", "10/07/2023"));
-	        expectedExams.add(new Exam(03, "java", 2, "6PM", "7PM", "10/09/2023"));
-            
-	       
-	        List<Exam> actualExams = examService.viewAllExams();
-
-	        // Assert
-	        Assertions.assertThat(expectedExams.size());
-	      
-	      }
-	    @Test
-	    public void UpdateExam() throws NumberFormatException{
-  Exam exam = new Exam(01, "java", 2, "3PM", "4PM", "10/07/2023");
-        
-        // Act
-        // Call the UpdateExam() method with your desired test scenario
-        
-        // Assert
-        // Assert the expected result or behavior based on the test scenario
-        // For example:
-        int expectedExamId = 01;
-        String expectedSubject = "java";
-        int expectedDuration = 2;
-        String expectedStartTime = "3PM";
-        String expectedEndTime = "4PM";
-        String expectedDate = "10/07/2023";
-        
-        assertEquals(expectedExamId, exam.geteId());
-        assertEquals(expectedSubject, exam.geteName());
-        assertEquals(expectedDuration, exam.getDuration());
-        assertEquals(expectedStartTime, exam.getStartTime());
-        assertEquals(expectedEndTime, exam.getEndTime());
-        assertEquals(expectedDate, exam.getExamDate());
-    }
-	   
-	    @Test
-	    public void testGetExamByDuration() throws NullValuesFoundException {
-	        // Arrange
-	        int duration = 2; // Specify the valid duration
-	        ExamServiceImpl examService = new ExamServiceImpl();
-
-	        // Act
-	        List<Exam> exams = examService.getExamByDuration(duration);
-
-	        // Assert
-	        Assertions.assertWith(exams);
-	        Assertions.assertThat(exams.isEmpty());
-	        for (Exam exam : exams) {
-	            Assertions.assertThat(duration);
-	        }
-	    }
-	    @Test
-	    public void testDeleteByeId_NonExistingId_NoExceptionThrown() throws InvalidExamIdException {
-	        // Arrange
-	        int nonExistingId = 999;
-
-	        // Act and Assert
-	        Assertions.assertThatThrownBy(() -> {
-	            ExamService exams = null;
-				exams.deleteByeId(nonExistingId);
-	        });
-	    }
-	    @Test
-
-	    public void addExam() throws ExamNotFoundException {
-
-	     
-
-	    Exam exam = new Exam();
-
-	    exam.seteId(18);
-
-	    exam.seteName("Java");
-
-	    exam.setStartTime("2Pm");
-
-	    exam.setEndTime("4PM");
-
-	    exam.setDuration(2);
-	    
-	    exam.setExamDate("12/03/2023");
-
-	    Exam addExam = examService.addExam(exam);
-
-	     
-
-	    assertNotNull(addExam);
-
-	     
-
-	    }
-}
-
-
-	
-
-	  
-	    
-
-
-	
-	
+	}

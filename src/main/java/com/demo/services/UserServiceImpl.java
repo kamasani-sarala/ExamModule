@@ -8,78 +8,73 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.demo.dto.UserDto;
 import com.demo.entity.User;
+import com.demo.exception.InvalidExamIdException;
 import com.demo.exception.NullUserFoundException;
 import com.demo.repository.UserRepository;
-
-
 
 @Service
 public class UserServiceImpl implements UserService {
 
-	@Autowired
-	UserRepository userRepository;
-	
-	private final Logger mylogs = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    UserRepository userRepository;
 
-	@Override
-	public List<User> viewAllUser() {
-		// TODO Auto-generated method stub
-		List<User> allUser = userRepository.findAll(); // Note : same as save
-		return allUser;
-		
-	}
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-	@Override
-	public String deleteUser(User user) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public List<User> viewAllUser() {
+        logger.info("Fetching all users");
+        return userRepository.findAll();
+    }
 
-	@Override
-	public User loginUser(String email, String password)throws NullUserFoundException {
-		// TODO Auto-generated method stub
-		if(email.equals("")|| email.equals("string")|| password.equals("")|| password.equals("string")) {
-			throw new NullUserFoundException("Email or Password Cannot be empty");
-		}
-			
-		User u =  userRepository.findUserByEmailPassword(email, password);
-		
-		if(u == null) {
-			throw new NullUserFoundException("Cant Login Parent Email and Password dont match");
-		}
-		
-		return u;
-	}
+    @Override
+    public String deleteUser(UserDto user) {
+        // Add logic to delete user from repository or service
+        logger.info("Deleting user: {}", user);
+        // ...
+        return null;
+    }
 
-	
+    @Override
+    public User loginUser(String email, String password) throws NullUserFoundException {
+        logger.info("Logging in user with email: {}", email);
+        if (email.equals("") || email.equals("string") || password.equals("") || password.equals("string")) {
+            throw new NullUserFoundException("Email or Password Cannot be empty");
+        }
 
-	@Override
-	public User updateUser(User user) {
-		// TODO Auto-generated method stub
-		return userRepository.save(user);
-	}
+        User user = userRepository.findUserByEmailPassword(email, password);
 
-	@Override
-	public List<User> getUserByuserId(int userId)throws Exception {
-		// TODO Auto-generated method stub
-		 List<User> Users = new ArrayList<>();
-			for (User user : Users) {
-	            if (user.getUserId() == userId) {
-	                return Users;
-	            }
-	        }
+        if (user == null) {
+            throw new NullUserFoundException("Cannot login. Email and password do not match");
+        }
 
-	        throw new Exception("User not found with userId: " + userId);
-	    }
-	
+        return user;
+    }
 
-	@Override
-	public User addUser(User user) {
-		// TODO Auto-generated method stub
-		return userRepository.save(user);
-	}
+    @Override
+    public User updateUser(UserDto user) {
+        logger.info("Updating user: {}", user);
+        return userRepository.save(user);
+    }
 
-	
+    @Override
+    public List<User> getUserByuserId(int userId) throws InvalidExamIdException {
+        logger.info("Fetching user by userId: {}", userId);
+        List<User> users = new ArrayList<>();
+        for (User user : users) {
+            if (user.getUserId() == userId) {
+                return users;
+            }
+        }
+
+        throw new InvalidExamIdException("User not found with userId: " + userId);
+    }
+
+    @Override
+    public User addUser(UserDto user) {
+        logger.info("Adding a new user: {}", user);
+        return userRepository.save(user);
+    }
+
 }
-

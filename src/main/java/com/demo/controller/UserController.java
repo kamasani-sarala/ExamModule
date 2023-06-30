@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.demo.dto.UserDto;
 import com.demo.entity.User;
 import com.demo.exception.NullUserFoundException;
 import com.demo.services.UserService;
@@ -27,7 +28,7 @@ import com.demo.services.UserService;
 		@Autowired
 		UserService userService;
 		
-		private final Logger mylogs = LoggerFactory.getLogger(this.getClass());
+		 final Logger mylogs = LoggerFactory.getLogger(this.getClass());
 		
 		@GetMapping("/")
 		public String defaultMessage() {
@@ -35,14 +36,9 @@ import com.demo.services.UserService;
 		}
 		//http://localhost:8089/User/registerUser
 		@PostMapping("/registerUser")
-		public User addUser(@RequestBody User user)  {
-			try {
+		public User addUser(@RequestBody UserDto user)  {
 				return userService.addUser(user);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return user;
+			
 		}
 		//http://localhost:8089/User/allUsers
 		@GetMapping("/allUsers")
@@ -52,13 +48,13 @@ import com.demo.services.UserService;
 		
 		//http://localhost:8089/User/updateUser
 		@PutMapping("/updateUser")
-		public User updateUser(@RequestBody User user) {
+		public User updateUser(@RequestBody UserDto user) {
 			return userService.updateUser(user);
 		}
 		
 		//http://localhost:8089/User/deleteUser
 		@DeleteMapping("/deleteUser")
-		public String deleteUser(@RequestBody User user)  {
+		public String deleteUser(@RequestBody UserDto user)  {
 			return userService.deleteUser(user);
 		}
 

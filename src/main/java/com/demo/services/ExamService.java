@@ -2,8 +2,11 @@ package com.demo.services;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.demo.dto.ExamDto;
 import com.demo.entity.Exam;
 import com.demo.exception.ExamNotFoundException;
 import com.demo.exception.InvalidExamIdException;
@@ -12,26 +15,33 @@ import com.demo.exception.NullValuesFoundException;
 @Service
 public interface ExamService {
 
+    Logger logger = LoggerFactory.getLogger(ExamService.class);
 
-	public Exam updateExam(Exam exam)throws InvalidExamIdException;
-	public Exam addExam(Exam exam) throws ExamNotFoundException;
+    Exam updateExam(Exam existingExam) throws InvalidExamIdException;
 
-	public Exam getExamByeId(int eId) throws InvalidExamIdException;
+    Exam addExam(Exam exam) throws ExamNotFoundException;
 
-	public List<Exam> getExamByDuration(int duration) throws NullValuesFoundException;
+    Exam getExamByeId(int eId) throws InvalidExamIdException;
 
+    List<Exam> getExamByDuration(int duration) throws NullValuesFoundException;
 
-	public List<Exam> findExamWithSorting(String eName) throws Exception;
+    List<Exam> findExamWithSorting(String eName) throws ExamNotFoundException;
 
+    Exam getExamByEndTime(String eName, String endTime);
 
-	public Exam getExamByEndTime(String eName, String endTime);
+    void deleteByeId(int eId) throws InvalidExamIdException;
 
-	public void deleteByeId(int eId) throws InvalidExamIdException;
+    List<Exam> viewAllExams() throws ExamNotFoundException;
 
-	public List<Exam> viewAllExams() throws ExamNotFoundException;
-	public List<Exam> sortingBasedOnDuration()throws NullValuesFoundException;
-	
-	
-	
-	
+    List<Exam> sortingBasedOnDuration() throws NullValuesFoundException;
+
+    Object getExams();
+
+    default void logInfo(String message) {
+        logger.info(message);
+    }
+
+    default void logError(String message, Throwable throwable) {
+        logger.error(message, throwable);
+    }
 }

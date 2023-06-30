@@ -1,13 +1,12 @@
 package com.demo.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +16,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
 
 import com.demo.entity.Exam;
 import com.demo.exception.ExamNotFoundException;
 import com.demo.exception.InvalidExamIdException;
 import com.demo.exception.NullValuesFoundException;
+import com.demo.model.Certification;
+import com.demo.model.RequiredResponse;
+import com.demo.repository.ExamRepository;
 import com.demo.services.ExamService;
 
 @RestController
@@ -29,83 +33,93 @@ import com.demo.services.ExamService;
 @RequestMapping("/Exam")
 public class ExamController {
 	
-		@Autowired
-		ExamService examService;
-		
-		private final Logger mylogs = LoggerFactory.getLogger(this.getClass());
-		
-		@GetMapping("/")
-		public String defaultMessage() {
-			return "Welcome to Exam Page";
-		}
-		
-		
-		//http://localhost:8089/Exam/registerExam
-		@PostMapping("/registerExam")
-		public Exam addExam(@RequestBody Exam exam)  {
-			try {
-				return examService.addExam(exam);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return exam;
-		}
-		//http://localhost:8089/Exam/allExam
-		@GetMapping("/allExam")
-		public List<Exam> viewAllExam() throws Exception{
-		return examService.viewAllExams();
-		    }
+    private final Logger logger = LoggerFactory.getLogger(ExamController.class);
 
-		
-		//http://localhost:8089/Exam/updateExam
-		@PutMapping("/updateExam")
-		public Exam updateExam(@RequestBody Exam exam) throws ExamNotFoundException{
-			try {
-		        Exam existingExam = examService.getExamByeId(exam.geteId());
-		        if (existingExam == null) {
-		            throw new ExamNotFoundException("Exam not found");
-		        }
-		       
-		        // Update the properties of the existing exam
-		        existingExam.seteName(exam.geteName());
-		        existingExam.setStartTime(exam.getStartTime());
-		        existingExam.setEndTime(exam.getEndTime());
-		        existingExam.setDuration(exam.getDuration());
-		        existingExam.setExamDate(exam.getExamDate());
+    @Autowired
+    ExamService examService;
 
-		        // Call the updateExam() method from the examService to save the changes
-		        Exam updatedExam = examService.updateExam(existingExam);
-		        
-		        return updatedExam;
-		    } catch (InvalidExamIdException e) {
-		        e.printStackTrace();
-		        throw new ExamNotFoundException("Exam not found");
-		    }
-		}
-		//http://localhost:8089/Exam/delete/3
-		@DeleteMapping("/delete/{eId}") 
+    @Autowired
+    private RestTemplate restTemplate;
 
-		public String deleteExam(@PathVariable int eId) throws NullValuesFoundException {
-		try {
+    @Autowired
+    ExamRepository examRepo;
 
-		examService.deleteByeId(eId);
-		} catch (Exception e) {
-		e.printStackTrace();
+    @GetMapping("/")
+    public String defaultMessage() {
+        logger.info("Welcome to Exam Page");
+        return "Welcome to Exam Page";
+    }
+//http://localhost:8089/Exam/registerExam
+    @PostMapping("/registerExam")
+    public Exam addExam(@RequestBody Exam exam) {
+        logger.info("Registering a new exam");
+        try {
+            return examService.addExam(exam);
+        } catch (Exception e) {
+            logger.error("Failed to register exam", e);
+            e.printStackTrace();
+        }
+        return exam;
+    }
+  //http://localhost:8089/Exam/allExam
+    @GetMapping("/allExam")
+    public List<Exam> viewAllExam() throws ExamNotFoundException {
+        logger.info("Fetching all exams");
+        return examService.viewAllExams();
+    }
 
-		}
-		mylogs.info("Deleted = " + eId + " Data");
-		return "Deleted Id = " + eId + " Data";
+    @PutMapping("/updateExam")
+    public Exam updateExam(@RequestBody Exam existingExam2) throws ExamNotFoundException, InvalidExamIdException {
+        Exam existingExam = examService.getExamByeId(existingExam2.geteId());
+        if (existingExam == null) {
+            throw new ExamNotFoundException("Exam not found");
+        }
 
-		}
-		// localhost:8089/Exam/sort/duration
-		@GetMapping("/sort/duration") 
-		public List<Exam> getBySorting() throws NullValuesFoundException {
+        // Update the properties of the existing exam
+        existingExam.seteName(existingExam2.geteName());
+        existingExam.setStartTime(existingExam2.getStartTime());
+        existingExam.setEndTime(existingExam2.getEndTime());
+        existingExam.setDuration(existingExam2.getDuration());
+        existingExam.setExamDate(existingExam2.getExamDate());
 
-		List<Exam> allExam = examService.sortingBasedOnDuration();
+        // Call the updateExam() method from the examService to save the changes
+        return examService.updateExam(existingExam);
+    }
 
-		return allExam;
 
-	}
-	}
+    @DeleteMapping("/delete/{eId}")
+    public String deleteExam(@PathVariable int eId)  {
+    	logger.info("Deleting exam with ID: {}", eId);
 
+        try {
+            examService.deleteByeId(eId);
+        } catch (Exception e) {
+            logger.error("Failed to delete exam", e);
+            e.printStackTrace();
+        }
+        logger.info("Deleted exam with ID: {}", eId);
+
+        return "Deleted Id = " + eId + " Data";
+    }
+
+    @GetMapping("/sort/duration") 
+    public List<Exam> getBySorting() throws NullValuesFoundException {
+        return examService.sortingBasedOnDuration();
+    }
+//http://localhost:8089/Exam/cId/1
+    @GetMapping("/cId/{cId}")
+    public ResponseEntity<RequiredResponse> getallDataBasedOnCertificationId(@PathVariable int cId) {
+    	logger.info("Fetching data for ID: {}", cId);
+
+        RequiredResponse requiredResponse = new RequiredResponse();
+
+        Exam exam = examRepo.findById(cId).get();
+        requiredResponse.setExam(exam);
+        List<Certification> listofcertifications = restTemplate.getForObject("http://CERTIFICATION/certification/cId/"+cId, List.class);
+        requiredResponse.setCertification(listofcertifications);
+
+        logger.info("Fetched data for ID: {}", cId);
+
+        return new ResponseEntity<RequiredResponse>(requiredResponse, HttpStatus.OK);
+    }
+}
